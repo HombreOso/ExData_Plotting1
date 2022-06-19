@@ -1,0 +1,28 @@
+library(data.table)
+importedFile <- fread("./exdata_data_household_power_consumption/household_power_consumption.txt", na.strings = "?")
+importedFile[, DateTime := as.Date(paste(Date, Time), format = "%d/%m/%Y %H:%M:%S")]
+library(dplyr)
+data2days <- filter(importedFile, DateTime >= as.Date("2007-02-01 00:00:00"), DateTime <= as.Date("2007-02-02 23:59:59"))
+names(data2days)
+dim(data2days)
+head(data2days)
+table(data2days$DateTime)
+data2days$WeekDay <- strftime(data2days$DateTime, format='%a')
+table(data2days$WeekDay)
+data2days$DT <- paste(data2days$Date, data2days$Time)
+data2days$DT <- as.POSIXct(data2days$DT, format="%d/%m/%Y %H:%M:%S", tz="UTC")
+head(data2days$DT)
+png(file = "plot4.png", bg = "white", h=480, w=480)
+
+par(mfrow=c(2,2))
+
+plot(data2days$DT, data2days$Global_active_power, type="l", ylab = "Global Active Power (kilowatts)", xlab = "")
+plot(data2days$DT, data2days$Voltage, type="l", ylab = "Voltage", xlab = "datetime")
+plot(data2days$DT, data2days$Sub_metering_1, type="n", ylab = "Energy sub metering", xlab="")
+lines(data2days$DT, data2days$Sub_metering_1)
+lines(data2days$DT, data2days$Sub_metering_2, col="red")
+lines(data2days$DT, data2days$Sub_metering_3, col="blue")
+legend("topright", legend=c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), col=c("black", "red", "blue"), bty="n", lty=c(1,1))
+plot(data2days$DT, data2days$Global_reactive_power, type="l", ylab = "Global_reactive_power", xlab = "datetime")
+
+dev.off()
